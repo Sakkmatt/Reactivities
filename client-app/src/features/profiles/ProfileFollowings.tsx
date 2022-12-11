@@ -1,8 +1,8 @@
 import { observer } from "mobx-react-lite";
-import { Tab, Grid, Header, Card } from "semantic-ui-react";
+import { Tab, Grid, Header, Card} from "semantic-ui-react";
+import React from 'react';
 import { useStore } from "../../app/stores/store";
 import ProfileCard from "./ProfileCard";
-import React from 'react';
 
 export default observer(function ProfileFollowings() {
     const {profileStore} = useStore();

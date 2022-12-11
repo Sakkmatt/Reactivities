@@ -1,21 +1,21 @@
 import { makeAutoObservable, reaction, runInAction } from "mobx";
+import { toast } from "react-toastify";
 import agent from "../api/agent";
 import { Photo, Profile, UserActivity } from "../models/profile";
 import { store } from "./store";
 
-export default class ProfileStore{
+export default class ProfileStore {
     profile: Profile | null = null;
     loadingProfile = false;
     uploading = false;
     loading = false;
     followings: Profile[] = [];
-    loadingFollowings: boolean =false;
+    loadingFollowings = false;
     activeTab: number = 0;
     userActivities: UserActivity[] = [];
     loadingActivities = false;
-    
 
-    constructor(){
+    constructor() {
         makeAutoObservable(this);
 
         reaction(
@@ -35,10 +35,8 @@ export default class ProfileStore{
         this.activeTab = activeTab;
     }
 
-    get isCurrentUser()
-    {
-        if(store.userStore.user && this.profile)
-        {
+    get isCurrentUser() {
+        if (store.userStore.user && this.profile) {
             return store.userStore.user.username === this.profile.username;
         }
         return false;
@@ -53,12 +51,14 @@ export default class ProfileStore{
                 this.loadingProfile = false;
             })
         } catch (error) {
-            console.log(error);
-            runInAction(() => this.loadingProfile = false);
+            toast.error('Problem loading profile');
+            runInAction(() => {
+                this.loadingProfile = false;
+            })
         }
     }
 
-    uploadPhoto = async (file: Blob) => {
+    uploadPhoto = async (file: any) => {
         this.uploading = true;
         try {
             const response = await agent.Profiles.uploadPhoto(file);
@@ -73,7 +73,7 @@ export default class ProfileStore{
                 }
                 this.uploading = false;
             })
-        } catch (error) {   
+        } catch (error) {
             console.log(error);
             runInAction(() => this.uploading = false);
         }
@@ -86,15 +86,15 @@ export default class ProfileStore{
             store.userStore.setImage(photo.url);
             runInAction(() => {
                 if (this.profile && this.profile.photos) {
-                    this.profile.photos.find(p => p.isMain)!.isMain = false;
-                    this.profile.photos.find(p => p.id === photo.id)!.isMain = true;
+                    this.profile.photos.find(a => a.isMain)!.isMain = false;
+                    this.profile.photos.find(a => a.id === photo.id)!.isMain = true;
                     this.profile.image = photo.url;
                     this.loading = false;
                 }
             })
         } catch (error) {
-            runInAction(() => this.loading = false);
             console.log(error);
+            runInAction(() => this.loading = false);
         }
     }
 
@@ -104,23 +104,26 @@ export default class ProfileStore{
             await agent.Profiles.deletePhoto(photo.id);
             runInAction(() => {
                 if (this.profile) {
-                    this.profile.photos = this.profile.photos?.filter(p => p.id !== photo.id);
+                    this.profile.photos = this.profile.photos?.filter(a => a.id !== photo.id);
                     this.loading = false;
                 }
             })
         } catch (error) {
-            runInAction(() => this.loading = false);
+            toast.error('Problem deleting photo');
+            this.loading = false;
         }
     }
+
     updateProfile = async (profile: Partial<Profile>) => {
         this.loading = true;
         try {
             await agent.Profiles.updateProfile(profile);
             runInAction(() => {
-                if (profile.displayName && profile.displayName !== store.userStore.user?.displayName) {
+                if (profile.displayName && profile.displayName !==
+                    store.userStore.user?.displayName) {
                     store.userStore.setDisplayName(profile.displayName);
                 }
-                this.profile = {...this.profile, ...profile as Profile};
+                this.profile = { ...this.profile, ...profile as Profile };
                 this.loading = false;
             })
         } catch (error) {
@@ -135,9 +138,9 @@ export default class ProfileStore{
             await agent.Profiles.updateFollowing(username);
             store.activityStore.updateAttendeeFollowing(username);
             runInAction(() => {
-                if (this.profile 
-                        && this.profile.username !== store.userStore.user?.username 
-                        && this.profile.username === username) {
+                if (this.profile
+                    && this.profile.username !== store.userStore.user?.username
+                    && this.profile.username === username) {
                     following ? this.profile.followersCount++ : this.profile.followersCount--;
                     this.profile.following = !this.profile.following;
                 }
@@ -188,4 +191,3 @@ export default class ProfileStore{
         }
     }
 }
-

@@ -11,7 +11,7 @@ interface Props {
     activityId: string;
 }
 
-export default observer(function ActivityDetailedChat({activityId }: Props) {
+export default observer(function ActivityDetailedChat({ activityId }: Props) {
     const { commentStore } = useStore();
 
     useEffect(() => {
@@ -22,7 +22,7 @@ export default observer(function ActivityDetailedChat({activityId }: Props) {
             commentStore.clearComments();
         }
     }, [commentStore, activityId]);
-    
+
     return (
         <>
             <Segment
@@ -30,12 +30,12 @@ export default observer(function ActivityDetailedChat({activityId }: Props) {
                 attached='top'
                 inverted
                 color='teal'
-                style={{border: 'none'}}
+                style={{ border: 'none' }}
             >
                 <Header>Chat about this event</Header>
             </Segment>
             <Segment attached clearing>
-            <Formik
+                <Formik
                     onSubmit={(values, { resetForm }) =>
                         commentStore.addComment(values).then(() => resetForm())}
                     initialValues={{ body: '' }}
@@ -50,7 +50,7 @@ export default observer(function ActivityDetailedChat({activityId }: Props) {
                                     <div style={{ position: 'relative' }}>
                                         <Loader active={isSubmitting} />
                                         <textarea
-                                            placeholder='Enter your comment (Enter to submit, SHIFT + enter for new line)'
+                                            placeholder='Enter your comment (Enter to submit, SHIFT + Enter for new line)'
                                             rows={2}
                                             {...props.field}
                                             onKeyPress={e => {
@@ -70,14 +70,11 @@ export default observer(function ActivityDetailedChat({activityId }: Props) {
                     )}
                 </Formik>
                 <Comment.Group>
-
                     {commentStore.comments.map(comment => (
                         <Comment key={comment.id}>
                             <Comment.Avatar src={comment.image || '/assets/user.png'} />
                             <Comment.Content>
-                                <Comment.Author as={Link} to={`/profiles/${comment.username}`}>
-                                    {comment.displayName}
-                                </Comment.Author>
+                                <Comment.Author as={Link} to={`/profiles/${comment.username}`}>{comment.displayName}</Comment.Author>
                                 <Comment.Metadata>
                                     <div>{formatDistanceToNow(comment.createdAt)} ago</div>
                                 </Comment.Metadata>
@@ -87,7 +84,6 @@ export default observer(function ActivityDetailedChat({activityId }: Props) {
                     ))}
 
 
-                    
                 </Comment.Group>
             </Segment>
         </>
